@@ -71,7 +71,7 @@ class UtilsNFSe
                     $toma->addChild("CNPJ", $cpfcnpj);
                 }
 //                $toma->addChild("IM", $dados['dadosAmbiente']['inscricaoMunicipal']);
-                $toma->addChild("xNome", self::sanitizarXML($dados['nome_nota']));
+                $toma->addChild("xNome", $dados['nome_nota']);
                 
                 // end - Endereço do tomador (opcional)
                 if (!empty($dados["logradouro"])) {
@@ -81,15 +81,15 @@ class UtilsNFSe
                     $endNac = $end->addChild("endNac");
                     $endNac->addChild("cMun", $dados["cod_ibge"]);
                     $endNac->addChild("CEP", self::clean($dados["cep"]));
-
-                    $end->addChild("xLgr", $dados["logradouro"]);
+                    
+                    $end->addChild("xLgr", utf8_encode($dados["logradouro"]));
                     $end->addChild("nro", $dados["numero"]);
 
                     if (!empty($dados["complemento"])) {
                         $end->addChild("xCpl", self::sanitizarXML($dados["complemento"]));
                     }
 
-                    $end->addChild("xBairro", $dados["bairro"]);
+                    $end->addChild("xBairro", utf8_encode($dados["bairro"]));
                 }
 
                 if (!empty($dados["email"])) {
@@ -188,9 +188,9 @@ class UtilsNFSe
                     $piscofins->addChild("CST", "01");
                     $piscofins->addChild("vBCPisCofins", $baseFmt);
 
-                    $vPis = round($base * ($aliqPis / 100), 2);
+                    $vPis = round($base * ($aliqPis / 100), 2, PHP_ROUND_HALF_DOWN);
                     $vPis = number_format($vPis, 2, ".", "");
-                    $vCofins = round($base * ($aliqCofins / 100), 2);
+                    $vCofins = round($base * ($aliqCofins / 100), 2, PHP_ROUND_HALF_DOWN);
                     $vCofins = number_format($vCofins, 2, ".", "");
 
                     $piscofins->addChild("pAliqPis", number_format($aliqPis, 2, ".", ""));
