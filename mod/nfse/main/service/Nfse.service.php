@@ -121,7 +121,7 @@ class NfseService extends NfseBaseService {
             $dadosNotas['chaveAcesso'] = $dadosDps['chaveAcesso'];
             $dadosNotas['conteudoXML'] = $dadosDps['xmlBase64'];
             
-            $dadosDanfse = $this->gerarDanfse($dadosDps['chaveAcesso']);
+            $dadosDanfse = $this->gerarDanfse($dadosDps['chaveAcesso'], $dadosDps['xmlBase64']);
             
             // Se houver erro na geração do PDF, adiciona o erro mas retorna os dados da DPS
             if ($dadosDanfse['erro'] != null) {
@@ -155,9 +155,15 @@ class NfseService extends NfseBaseService {
         if(isset($dadosDps['xmlBase64'])) {
             $dadosNotas['conteudoXML'] = $dadosDps['xmlBase64'];
             
-            $dadosDanfse = $this->gerarDanfse($chaveAcesso);
+            $xmlNfse = null;
             
-            // Se houver erro na geração do PDF, adiciona o erro mas retorna os dados da DPS
+            try {
+                $dadosNfse = $this->dao->retornarDps($chaveAcesso);
+                if (isset($dadosNfse['xmlBase64'])) {
+                    $xmlNfse = $dadosNfse['xmlBase64'];
+                }
+            } catch (Exception $e) { /* ignora: gerarDanfse buscara o XML sozinho */ }
+            $dadosDanfse = $this->gerarDanfse($chaveAcesso, $xmlNfse, true);
             if ($dadosDanfse['erro'] != null) {
                 $dadosNotas['conteudoPDF'] = '';
                 $dadosNotas['erroGeracaoPDF'] = $dadosDanfse['erro'];
@@ -180,7 +186,7 @@ class NfseService extends NfseBaseService {
             $dadosNotas['chaveAcesso'] = $dadosDps['chaveAcesso'];
             $dadosNotas['conteudoXML'] = $dadosDps['xmlBase64'];
             
-            $dadosDanfse = $this->gerarDanfse($dadosDps['chaveAcesso']);
+            $dadosDanfse = $this->gerarDanfse($dadosDps['chaveAcesso'], $dadosDps['xmlBase64']);
             
             // Se houver erro na geração do PDF, adiciona o erro mas retorna os dados da DPS
             if ($dadosDanfse['erro'] != null) {
@@ -286,19 +292,10 @@ class NfseService extends NfseBaseService {
      * @param string $chaveAcesso Chave de acesso da nota
      * @return array Array com pdfBase64, erro e http_code
      */
-    private function gerarDanfse($chaveAcesso)
+    private function gerarDanfse($chaveAcesso, $xml = null, $cancelada = false)
     {
-        // Tenta primeiro com o ADN
-        $dadosDanfse = $this->dao->gerarDanfse($chaveAcesso);
-        
-        if ($dadosDanfse['erro'] == null && $dadosDanfse['pdfBase64'] != null) {
-            return $dadosDanfse;
-        }
-
-        // Se falhou no ADN, tenta o Emissor Nacional como backup
-        $dadosDanfseBackup = $this->dao->gerarDanfseBackup($chaveAcesso);
-        $dadosDanfseBackup['backupUtilizado'] = true;
-
-        return $dadosDanfseBackup;
+        $dadosLocal = $this->dao->gerarDanfseLocal($chaveAcesso, $xml, $cancelada);
+        $dadosLocal['localGerado'] = true;
+        return $dadosLocal;
     }
 }

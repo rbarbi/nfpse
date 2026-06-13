@@ -1,0 +1,12 @@
+{
+    "name": "nfpse/nfse",
+    "description": "Modulo NFSe",
+    "require": {
+        "tecnickcom/tc-lib-barcode": "^1.15",
+        "tecnickcom/tc-lib-color": "^1.14",
+        "dompdf/dompdf": "^2.0"
+    },
+    "config": {
+        "vendor-dir": "vendor"
+    }
+}

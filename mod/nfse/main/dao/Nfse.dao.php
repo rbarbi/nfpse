@@ -536,6 +536,35 @@ class NfseDAO
         );
     }
 
+    public function gerarDanfseLocal($chaveAcesso, $xml = null, $cancelada = false)
+    {
+        try {
+            if ($xml === null) {
+                $dadosDps  = $this->retornarDps($chaveAcesso);
+                $xml = $dadosDps['xmlBase64'];
+            }
+
+            $xmlString = base64_decode($xml);
+
+            require_once dirname(__DIR__) . '/model/Danfse.php';
+            $gen = new Danfse($xmlString, $chaveAcesso, $cancelada);
+
+            $pdfBinary = $gen->generate();
+
+            return array(
+                'pdfBase64' => base64_encode($pdfBinary),
+                'erro'      => null,
+                'http_code' => 200
+            );
+        } catch (Exception $e) {
+            return array(
+                'pdfBase64' => null,
+                'erro'      => 'Erro ao gerar DANFSe local: ' . $e->getMessage(),
+                'http_code' => 500
+            );
+        }
+    }
+
     public function getCon()
     {
         return MainGama::getApp()->getCon('-');
